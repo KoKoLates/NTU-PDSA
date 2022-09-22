@@ -1,127 +1,109 @@
-import java.util.HashMap;
-import edu.princeton.cs.algs4.Merge;
+import edu.princeton.cs.algs4.Quick;
 import edu.princeton.cs.algs4.Point2D;
 import edu.princeton.cs.algs4.WeightedQuickUnionUF;
 
 class Percolation {
+    Node[] rootHead;
     Point2D[] region;
     int n, upper, down, count = 0;
-    WeightedQuickUnionUF all;
-    WeightedQuickUnionUF full;
-    HashMap<Integer, Node> rootHead;
-    HashMap<Integer, Boolean> openStatus;
-    int[][] m = new int[][] {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+    WeightedQuickUnionUF fullCheck;
+    WeightedQuickUnionUF percolatedCheck;
+    // Create a direction matrix for four direction searching
+    int[][] m = new int[][] {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
 
+    /**
+     * Node class for the linked list to store the percolated region
+     */
     private static class Node{
-        private final Point2D site;
         private Node next;
+        private Node tail;
         private int length;
+        private final Point2D site;
 
+        /**
+         * Initial the node with itself
+         * @param site The coordinate of the open site
+         */
         public Node(Point2D site){
             this.site = site;
+            this.tail = this;
             this.next = null;
             this.length = 1;
         }
 
-        private Node insertHead(Node node){
-            int length = this.length + node.length;
-            if(this.length > node.length){
-                Node temp = node;
-                while (temp.next != null)
-                    temp = temp.next;
-
-                temp.next = this;
-                node.length = length;
-                return node;
-            }
-            else{
-                Node temp = this;
-                while (temp.next != null)
-                    temp = temp.next;
-
-                temp.next = node;
-                this.length = length;
-                return this;
-            }
+        /**
+         * Insert the node itself at the head of another node.
+         * @param node The head of node to be inserted
+         */
+        private void insertHead(Node node){
+            this.length += node.length;
+            this.tail.next = node;
+            this.tail = node.tail;
         }
     }
 
     public Percolation(int N){
-        if(N <= 0)
-            throw new IllegalArgumentException("Grid size n <= 0.");
         n = N; upper = n * n; down = n * n + 1;
-        rootHead = new HashMap<>();
-        openStatus = new HashMap<>();
-        all = new WeightedQuickUnionUF(n * n + 2);
-        full = new WeightedQuickUnionUF(n * n + 1);
+        rootHead = new Node[n * n];
+        fullCheck = new WeightedQuickUnionUF(n * n + 1);
+        percolatedCheck = new WeightedQuickUnionUF(n * n + 2);
     }
 
-    /**
-     * opens the site (row, col) if it is not open already
-     * @param i The row of the grid
-     * @param j The col of the grid
-     */
     public void open(int i, int j){
-        Point2D sites = new Point2D(i, j);
-        Node node = new Node(sites);
-        rootHead.put(i * n + j, node);
-        openStatus.put(i * n + j, true);
-
+        Point2D site = new Point2D(i, j);
+        Node node = new Node(site);
+        rootHead[i * n + j] = node;
         for(int k = 0; k < 4; k++){
             int a = i + m[k][0];
             int b = j + m[k][1];
-            if(a < 0|| a > n - 1 || b < 0 || b > n - 1 || !isOpen(a, b))
+            if(a < 0 || a > n - 1 || b < 0 || b > n - 1 || !isOpen(a, b) ||
+                    fullCheck.find(a * n + b) == fullCheck.find(i * n + j))
                 continue;
 
-            if(full.find(a * n + b) != full.find(i * n + j)){
-                Node side = rootHead.get(full.find(a * n + b));
-                all.union(a * n + b, i * n + j);
-                full.union(a * n + b, i * n + j);
-
-                node = node.insertHead(side);
-                rootHead.put(full.find(i * n + j), node);
-
-            }
+            Node root = rootHead[fullCheck.find(a * n + b)];
+            node.insertHead(root);
+            fullCheck.union(i * n + j, a * n + b);
+            percolatedCheck.union(i * n + j, a * n + b);
+            rootHead[fullCheck.find(a * n + b)] = node;
         }
 
-        if(i == 0) {
-            all.union(j, upper);
-            full.union(j, upper);
+        if(i == 0){
+            fullCheck.union(j, upper);
+            percolatedCheck.union(j, upper);
         }
         if(i == n - 1)
-            all.union(i * n + j, down);
+            percolatedCheck.union(i * n + j, down);
 
         if(percolates() && count == 0){
             count++;
             region = new Point2D[node.length];
             int index = 0;
-            while (node != null){
-                region[index] = node.site;
+            while(node != null) {
+                region[index++] = node.site;
                 node = node.next;
-                index++;
             }
-            Merge.sort(region);
+            Quick.sort(region);
         }
     }
 
     /**
-     * Is the site (row, col) open or not
-     * @param i The row of the grid
-     * @param j The col of the grid
-     * @return The status of open
+     * Check the corresponding site is opened or not
+     * @param i The col of the site
+     * @param j The row of the site
+     * @return The boolean value of open status
      */
     public boolean isOpen(int i, int j){
-        return openStatus.getOrDefault(i * n + j, false);
+        return !(rootHead[i * n + j] == null);
     }
 
     /**
-     * Is the site (row, col) Full or not
-     * @param i The row of the grid
-     * @param j The col of the grid
-     * @return The status of full
+     * Check the corresponding site is full or not
+     * @param i The col of the site
+     * @param j The row of the site
+     * @return The boolean value of open status
      */
     public boolean isFull(int i, int j){
-        return full.find(i * n + j) == full.find(upper);
+        return fullCheck.find(i * n + j) == fullCheck.find(upper);
     }
 
     /**
@@ -129,10 +111,11 @@ class Percolation {
      * @return The boolean status represent percolate
      */
     public boolean percolates(){
-        return all.find(upper) == all.find(down);
+        return percolatedCheck.find(upper) == percolatedCheck.find(down);
     }
 
     /**
+     * Get the percolation path once the system is percolated
      * @return The array of the sites of the percolation region
      */
     public Point2D[] PercolatedRegion(){
