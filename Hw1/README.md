@@ -1,5 +1,5 @@
 # Board Game
-`2022PDSA`
+`2022PDSA`、 `board game`、 `weigth union find`
 
 ## Judge
 Grading Status:
@@ -8,7 +8,7 @@ Grading Status:
 * WA: Wrong Answer
 * RE: Runtime Error (Mostly your program raise some error unexpectly)
 
-Memory: 1G
+Memory: `1G`
 
 Handin the file with utf-8 encoding if there are 中文 words inside your code (including comments).
 
@@ -17,22 +17,13 @@ Play a board game. The playing pieces in our board game are called stones. There
 
 We define connected as two stones are next to each other in vertically or horizontally.
 
-For example:
+For example: After the flipStone(`O`) operation:
 ```
-.XXOX
-XOXO.
-XXOX.
-XXOXX
-..XOX
-```
-
-After the flipStone('O') operation:
-```
-.XXOX
-XXXO.
-XXXX.
-XXXXX
-..XOX
+.XXOX      .XXOX
+XOXO.      XXXO.
+XXOX.  ->  XXXX.
+XXOXX      XXXXX
+..XOX      ..XOX
 ```
 
 ## Template
@@ -51,83 +42,6 @@ public class BoardGame {
 }
 ```
 
-## Example
-Given a board 
-```
-...    ...    .X.    .X.    .X.
-... -> .O. -> XOX -> XOX -> XOX
-...    ...    ...    .X.    OX.
-```
-
-``` java
-public static void main(String args[]){ 
-    BoardGame g = new BoardGame(3,3); 
-    g.putStone(new int[]{1}, new int[]{1}, 'O');
-    System.out.println(g.surrounded(1, 1)); 
-    System.out.println(g.countConnectedRegions()); 
-       
-    g.putStone(new int[]{0, 1, 1}, new int[]{1, 0, 2}, 'X');
-    System.out.println(g.surrounded(1, 1)); 
-    System.out.println(g.countConnectedRegions()); 
-
-    g.putStone(new int[]{2},new int[]{1}, 'X');
-    System.out.println(g.surrounded(1, 1));
-    System.out.println(g.surrounded(2, 1)); 
-    System.out.println(g.countConnectedRegions()); 
-
-    g.putStone(new int[]{2}, new int[]{0}, 'O');
-    System.out.println(g.surrounded(2, 0)); 
-    System.out.println(g.countConnectedRegions()); 
-}
-
--> 
-
-False
-1
-False
-4
-True
-False
-5
-False
-6
-```
-
-Note the stone at the corner will never be surrounded.
-
-More example
-```
-# Both O are not surrounded by X
-# There are 5 ConnectedRegions.
-
-.X.
-XOOX
-.XX.
-```
-```
-# Both O are surrounded by X
-# There are 5 ConnectedRegions.
-
-.XX
-XOOX
-.XX.
-```
-```
-# Neither O or X is surrounded
-# There are 6 ConnectedRegions.
-
-OXO
-XOX
-```
-```
-# Neither O or X is surrounded
-# There are 3 ConnectedRegions.
-
-.XXXX
-XO.OX
-XXXXX
-```
-
 ## TestCase
 Time Limit 2s
 
@@ -135,7 +49,6 @@ Time Limit 2s
 * `M` is the total times we call `putStone` or `surrounded`
 * We guarantee there is stone at (x,y) when we call surrounded(x,y)
 * And there is no stone at (x,y) when we call putStone(x,y).
-
 
 Total 100 points (Not sure)
 * 20 points: `w,h < 3` `M < 100` Simple
