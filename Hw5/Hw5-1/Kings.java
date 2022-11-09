@@ -2,7 +2,7 @@ import java.util.Queue;
 import java.util.PriorityQueue;
 import edu.princeton.cs.algs4.Stack;
 
-class King implements Comparable <King>{
+class King implements Comparable<King> {
     int Strength; int Range; int Index;
     King(int str, int rng, int i) {
         this.Strength = str; this.Range = rng; this.Index = i;
@@ -12,6 +12,7 @@ class King implements Comparable <King>{
      * @param k the object to be compared.
      * @return the compare result.
      */
+    @Override
     public int compareTo(King k) {
         if (Strength == k.Strength) return Integer.compare(k.Index, Index);
         else if (Strength > k.Strength) return 1;
@@ -40,7 +41,6 @@ class Kings {
             }
             stack.push(warrior[i]);
         }
-
         Stack<King> kings = new Stack<>();
         while (!stack.isEmpty()) {
             while (!kings.isEmpty() && kings.peek().Strength < stack.peek().Strength) {
@@ -49,7 +49,6 @@ class Kings {
             }
             kings.push(stack.pop());
         }
-
         king = new King[kings.size()]; int count = 0;
         while (!kings.isEmpty()) king[count++] = kings.pop();
     }
