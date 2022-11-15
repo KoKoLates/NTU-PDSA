@@ -1,13 +1,13 @@
 class LongJump {
-    AVT bst;
-    private static class AVT {
+    public AVL AVLTree;
+    private static class AVL {
         Node root;
         private static class Node {
             int value, height; Node left, right;
             public Node(int value) {this.value = value; this.height = 0; this.right = this.left = null;}
         }
 
-        AVT() {root = null;}
+        AVL() {root = null;}
         private int height(Node node) {return node!= null ? node.height : -1;}
         private void updateHeight(Node node) {
             int leftHeight = height(node.left), rightHeight = height(node.right);
@@ -33,18 +33,13 @@ class LongJump {
         private Node balance(Node node) {
             int balanceFactor = balanceFactor(node);
             if (balanceFactor < -1) {
-                if (balanceFactor(node.left) > 0) {
-                    node.left = rotateLeft(node.left);
-                }
+                if (balanceFactor(node.left) > 0) node.left = rotateLeft(node.left);
                 node = rotateRight(node);
             }
             if (balanceFactor > 1) {
-                if (balanceFactor(node.right) < 0) {
-                    node.right = rotateRight(node.right);
-                }
+                if (balanceFactor(node.right) < 0) node.right = rotateRight(node.right);
                 node = rotateLeft(node);
             }
-
             return node;
         }
         public void insert(int value) {root = insert(root, value);}
@@ -64,15 +59,15 @@ class LongJump {
         }
     }
     public LongJump(int[] playerList) {
-        bst = new AVT();
-        for(int i: playerList) bst.insert(i);
+        AVLTree = new AVL();
+        for(int i: playerList) AVLTree.insert(i);
     }
 
     public void addPlayer(int distance) {
-        bst.insert(distance);
+        AVLTree.insert(distance);
     }
 
     public int winnerDistances(int from, int to) {
-        return bst.rangeSum(bst.root, from, to);
+        return AVLTree.rangeSum(AVLTree.root, from, to);
     }
 }
