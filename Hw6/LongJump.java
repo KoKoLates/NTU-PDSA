@@ -1,54 +1,69 @@
 class LongJump {
-    public AVL AVLTree;
-    private static class AVL {
-        Node root;
+    private final SplayTree splayTree;
+
+    public static class SplayTree {
         private static class Node {
-            int value, height; Node left, right;
-            public Node(int value) {this.value = value; this.height = 0; this.right = this.left = null;}
-        }
-
-        AVL() {root = null;}
-        private int height(Node node) {return node!= null ? node.height : -1;}
-        private void updateHeight(Node node) {
-            int leftHeight = height(node.left), rightHeight = height(node.right);
-            node.height = Math.max(leftHeight, rightHeight) + 1;
-        }
-
-        private int balanceFactor(Node node) {
-            return height(node.right) - height(node.left);
-        }
-
-        private Node rotateRight(Node node) {
-            Node left = node.left; node.left = left.right; left.right = node;
-            updateHeight(node); updateHeight(left);
-            return left;
-        }
-
-        private Node rotateLeft(Node node) {
-            Node right = node.right; node.right = right.left; right.left = node;
-            updateHeight(node); updateHeight(right);
-            return right;
-        }
-
-        private Node balance(Node node) {
-            int balanceFactor = balanceFactor(node);
-            if (balanceFactor < -1) {
-                if (balanceFactor(node.left) > 0) node.left = rotateLeft(node.left);
-                node = rotateRight(node);
+            int value; Node parent, left, right;
+            public Node(int value) {
+                this.value = value; this.parent = this.left = this.right = null;
             }
-            if (balanceFactor > 1) {
-                if (balanceFactor(node.right) < 0) node.right = rotateRight(node.right);
-                node = rotateLeft(node);
-            }
-            return node;
         }
-        public void insert(int value) {root = insert(root, value);}
-        private Node insert(Node node, int value) {
-            if(node == null) return new Node(value);
-            if(node.value > value) node.left = insert(node.left, value);
-            else if(node.value < value) node.right = insert(node.right, value);
-            updateHeight(node);
-            return balance(node);
+
+        private Node root;
+        public SplayTree() {root = null;}
+        public void insert(int value) {
+            Node node = new Node(value);
+            Node x = this.root, y = null;
+            while (x != null) {
+                y = x;
+                if(node.value < x.value) x = x.left;
+                else x = x.right;
+            }
+            node.parent = y;
+            if(y == null) root = node;
+            else if(node.value < y.value) y.left = node;
+            else y.right = node;
+            splay(node);
+        }
+
+        private void splay(Node node){
+            while(node.parent != null) {
+                if(node.parent.parent == null) {
+                    if(node == node.parent.left) rightRotate(node.parent);
+                    else leftRotate(node.parent);
+                } else if (node == node.parent.left && node.parent == node.parent.parent.left) {
+                    rightRotate(node.parent.parent);
+                    rightRotate(node.parent);
+                } else if (node == node.parent.right && node.parent == node.parent.parent.right) {
+                    leftRotate(node.parent.parent);
+                    leftRotate(node.parent);
+                } else if (node == node.parent.right && node.parent == node.parent.parent.left) {
+                    leftRotate(node.parent);
+                    rightRotate(node.parent);
+                } else {
+                  rightRotate(node.parent); leftRotate(node.parent);
+                }
+            }
+        }
+
+        private void rightRotate(Node node) {
+            Node temp = node.left; node.left = temp.right;
+            if(temp.right != null) temp.right.parent = node;
+            temp.parent = node.parent;
+            if(node.parent == null) this.root = temp;
+            else if(node == node.parent.right) node.parent.right = temp;
+            else node.parent.left = temp;
+            temp.right = node; node.parent = temp;
+        }
+
+        private void leftRotate(Node node) {
+            Node temp = node.right; node.right = temp.left;
+            if(temp.left != null) temp.left.parent = node;
+            temp.parent = node.parent;
+            if(node.parent == null) this.root = temp;
+            else if(node == node.parent.left) node.parent.left = temp;
+            else node.parent.right = temp;
+            temp.left = node; node.parent = temp;
         }
 
         public int rangeSum(Node node, int left, int right) {
@@ -58,16 +73,17 @@ class LongJump {
             return node.value + rangeSum(node.left, left, right) + rangeSum(node.right, left, right);
         }
     }
+
     public LongJump(int[] playerList) {
-        AVLTree = new AVL();
-        for(int i: playerList) AVLTree.insert(i);
+        splayTree = new SplayTree();
+        for(int i: playerList) splayTree.insert(i);
     }
 
     public void addPlayer(int distance) {
-        AVLTree.insert(distance);
+        splayTree.insert(distance);
     }
 
     public int winnerDistances(int from, int to) {
-        return AVLTree.rangeSum(AVLTree.root, from, to);
+        return splayTree.rangeSum(splayTree.root, from, to);
     }
 }
